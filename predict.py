@@ -3,10 +3,14 @@ import pickle
 import numpy as np
 import librosa.display
 import matplotlib.pyplot as plt
-import lime
 from lime import lime_image
 import shap
 from skimage.segmentation import mark_boundaries
+import os
+
+MODEL_PATH = os.environ.get('MODEL_PATH')
+FEATURES_FILE = os.environ.get('FEATURES_FILE')
+LABELS_FILE = os.environ.get('LABELS_FILE')
 
 
 def plt_spectrogram(segment):
@@ -84,16 +88,16 @@ def explain(i):
     show_lime_x(spectrogram) 
 
     
-interpreter = tf.lite.Interpreter(model_path="../HTS01-AI-pipeline/ID-VesNet_models/M1_4.tflite")
+interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
 interpreter.allocate_tensors()
 
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 # Load data
-with open('/mnt/Data1/Acoustics/ready_for_AI/features/allnew.pkl', 'rb') as f:
+with open(FEATURES_FILE, 'rb') as f:
     all_features = pickle.load(f)
-with open('/mnt/Data1/Acoustics/ready_for_AI/labels/allnew.pkl', 'rb') as f:
+with open(LABELS_FILE, 'rb') as f:
     all_labels = pickle.load(f)
 
 
