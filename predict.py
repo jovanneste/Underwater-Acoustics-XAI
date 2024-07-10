@@ -37,7 +37,7 @@ def plot_explanation_side_by_side(flipped_spectrogram, explanation, num_classes=
     # Plot explanations for each class
     for i in range(num_classes):
         temp, mask = explanation.get_image_and_mask(
-            i, positive_only=False, num_features=10, hide_rest=True
+            i, positive_only=True, num_features=10, hide_rest=True
         )
         axs[i + 1].imshow(mark_boundaries(flipped_spectrogram, mask))
         axs[i + 1].set_title(f'Explanation for class {i}')
@@ -45,20 +45,18 @@ def plot_explanation_side_by_side(flipped_spectrogram, explanation, num_classes=
 
     plt.tight_layout()
     plt.show()
+    
 
 def show_lime_x(x):
     explainer = lime_image.LimeImageExplainer()
-    i = 0
-    
-    # Convert grayscale spectrogram to pseudo-RGB by stacking the single channel three times
-    spectrogram_input = np.repeat(x[i].astype('double'), 3, axis=-1)
+    spectrogram_input = np.repeat(x[0].astype('double'), 3, axis=-1)
     
     explanation = explainer.explain_instance(
         spectrogram_input,
         predict_fn,
         top_labels=4,
         hide_color=0,
-        num_samples=1500
+        num_samples=1000
     )
     
     plot_explanation_side_by_side(spectrogram_input, explanation)
@@ -79,6 +77,11 @@ def get_specs(i):
     
     return all_spectrograms, labels, array, onehot_preds
     
+def explain(i):
+    spectrogram, label, predictions, onehot_preds = get_specs(i)
+    print(label)
+    print(predictions, onehot_preds)
+    show_lime_x(spectrogram) 
 
     
 interpreter = tf.lite.Interpreter(model_path="../HTS01-AI-pipeline/ID-VesNet_models/M1_4.tflite")
@@ -94,10 +97,6 @@ with open('/mnt/Data1/Acoustics/ready_for_AI/labels/allnew.pkl', 'rb') as f:
     all_labels = pickle.load(f)
 
 
-spectrogram, label, predictions, onehot_preds = get_specs(4000)
-print(label)
-print(predictions, onehot_preds)
-show_lime_x(spectrogram) 
 
 
 
@@ -115,9 +114,10 @@ show_lime_x(spectrogram)
 
 # =============================================================================
 # # SHAP Explanation
-# explainer = shap.KernelExplainer(predict_fn, all_spectrograms)
-# shap_values = explainer.shap_values(all_spectrograms[0:1], nsamples=100)
-# shap.image_plot(shap_values, all_spectrograms[0:1])
+# explainer = shap.KernelExplainer(predict_fn, spectrogram)
+# shap_values = explainer.shap_values(spectrogram[0:1], nsamples=100)
+# shap.image_plot(shap_values, spectrogram[0:1])
+# 
 # 
 # 
 # =============================================================================
